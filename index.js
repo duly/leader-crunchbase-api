@@ -48,14 +48,22 @@ function middleware (apiKey) {
  */
 
 function details (profile, person) {
-  var company = person.company;
-  extend(true, company, map(profile, {
+  person.company = person.company || {};
+  extend(true, person.company, map(profile, {
     'tags': 'tag_list',
     'employees': 'number_of_employees',
     'category': 'category_code',
     'crunchbase.url': 'crunchbase_url',
-    'funding': 'total_money_raised'
+    'funding': 'total_money_raised',
+    'twitter.username': 'twitter_username'
   }));
+
+  if (profile.external_links) {
+    person.company.links = person.company.links || [];
+    profile.external_links.forEach(function (item) {
+      person.company.links.push({ title: item.title, link: item.external_url });
+    });
+  }
 }
 
 /**
@@ -106,7 +114,7 @@ function getCompanyName (person, context) {
  */
 
 function getInterestingDomain (person, context) {
-  if (person.domain && person.domain.interesting)
+  if (person.domain && !person.domain.disposable && !person.domain.personal)
     return person.domain.name;
   else
     return null;
